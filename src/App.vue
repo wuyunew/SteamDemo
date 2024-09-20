@@ -1,23 +1,43 @@
+<script setup>
+import Header from '@/components/Header.vue';
+import Foot from './components/Foot.vue';
+</script>
 <template>
-  <RouterView />
+  <div class="common-layout">
+    <el-container>
+      <el-header class="el-header"><Header></Header></el-header>
+      <el-main><RouterView/></el-main>
+      <el-footer><Foot/></el-footer>
+    </el-container>
+  </div>
 </template>
 
-<script setup>
-</script>
+<style scoped lang="less">
+html, body,#app {
+  height: 100%;
+  width: 100%;
+  margin:0;
+	padding:0;
+	border:0
+}
 
-<style scoped>
-html, body {
+.common-layout {
   height: 100%;
   width: 100%;
-	margin:2px 2px ;
-	padding:0;
-	border:0
+  .el-header {
+    padding:0;
+    height: 100%;
+  }
+  .el-main {
+    padding:0;
+    height:100%
+  }
+  .el-footer {
+    padding:0;
+    height:100%
+  }
 }
-#app {
-  height: 100%;
-  width: 100%;
-	margin:0;
-	padding:0;
-	border:0
-}
+
+
+
 </style>
