@@ -1,17 +1,17 @@
-const env=import.meta.env.MOOE || "development";
-const EnvConfig={
-    development:{
-        baseApi:"/development/api",
+const env = import.meta.env.MOOE || "development";
+const EnvConfig = {
+    development: {
+        baseApi: "http://develpomet/api",
     },
-    text:{
-        baseApi:"/test/api",
+    text: {
+        baseApi: "http://test/api",
     },
-    prod:{
-        baseApi:"/prod/api",
+    prod: {
+        baseApi: "http://prod/api",
     },
 };
 
-export default{
+export default {
     env,
     ...EnvConfig[env],
 }

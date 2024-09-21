@@ -1,3 +1,9 @@
+<script setup>
+
+</script>
+
 <template>
-    <p>wish-list</p>
+
 </template>
+
+<style lang="less" scoped></style>

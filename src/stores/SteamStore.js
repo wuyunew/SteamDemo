@@ -14,7 +14,7 @@ function initState() {
   }
 }
 
-const {loginApi,getUserInfoApi}=api
+const { loginApi, getUserInfoApi } = api
 
 export const useSteamStore = defineStore('steam', {
 
