@@ -1,5 +1,5 @@
 <script setup>
-
+import Swiper from '@/components/Swiper.vue';
 const items = [
     { name: "您的商城", path: '/' },
     { name: "新鲜推荐", path: '/' },
@@ -33,7 +33,8 @@ const items = [
         <div class="store-down">
             <!--精选与推荐-->
             <div class="store-dowm-section">
-                <h3>精选与推荐</h3>
+                <h5>精选与推荐</h5>
+                <Swiper class="swiper"></Swiper>
             </div>
         </div>
     </div>
@@ -126,8 +127,19 @@ const items = [
 
     };
     .store-down{
-        background-color: #0e1c25;
+        width: 100%;
+        height: 500px;
+        margin-top: -120px;
         color: white;
+        background-image: url("../assets/Steam_Summer_Sale_pattern-04-day_lighter.gif");
+    }
+    h5{
+        margin-left:20% ;
+    }
+    .swiper{
+        width: 1000px;
+        height: 360px;
+        margin-left: 22%;
     }
 
 }
