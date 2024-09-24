@@ -24,7 +24,7 @@ html, body,#app {
 
 .common-layout {
   height: 100%;
-  min-width: 1225px;
+  min-width: 1300px;
   .el-header {
     padding:0;
     height: 100%;

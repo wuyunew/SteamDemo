@@ -1,5 +1,7 @@
 <script setup>
 import Swiper from '@/components/Swiper.vue';
+import { getRecommendationsApi } from '@/api/app';
+import { onMounted, ref } from 'vue';
 const items = [
     { name: "您的商城", path: '/' },
     { name: "新鲜推荐", path: '/' },
@@ -9,6 +11,46 @@ const items = [
     { name: "实验室", path: '/' },
 
 ]
+//通过key的变化重新渲染组件，从而更新props的值
+const key = ref(0);
+
+const gamesList = ref(
+    [
+        {
+            url: "www.baidu.com",
+            name: "firstgame",
+            imgUrl: [
+                "../assets/img/u_02.jpg",
+                "../assets/img/zs_01.png",
+                "../assets/img/zs_02.jpg",
+                "../assets/img/zs_03.png",
+                "../assets/img/u_01.jpg"
+            ]
+        },]
+)
+//promise是异步的，所以刚开始recomm还是保持原样，过一段时间才正常
+/*
+recommendations{
+gamesList[
+{url:url of game,
+ name:name of game,
+ imgUrl:[0,1,2,3,4]
+ 4是游戏主视图
+},
+]
+}
+*/
+
+const getRecommendations = () => {
+    getRecommendationsApi().then((resolve, reject) => {
+        gamesList.value = resolve.gamesList
+        key.value = 1
+    })
+}
+onMounted(() => {
+    getRecommendations()
+
+})
 </script>
 
 <template>
@@ -34,7 +76,7 @@ const items = [
             <!--精选与推荐-->
             <div class="store-dowm-section">
                 <h5>精选与推荐</h5>
-                <Swiper class="swiper"></Swiper>
+                <Swiper class="swiper" :gamesList="gamesList" :key="key"></Swiper>
             </div>
         </div>
     </div>
@@ -47,6 +89,7 @@ const items = [
     flex-direction: column;
     min-height: max(calc(100vh-104px), 765px);
     margin-top: -4px;
+
     .store-top {
         height: 740px;
         padding-top: 27px;
@@ -54,6 +97,7 @@ const items = [
         justify-content: center;
         background-image: url("../assets/home_header_bg_day_schinese.gif");
         background-position: center;
+
         .store-top-nav {
             width: 920px;
             height: 38px;
@@ -125,23 +169,27 @@ const items = [
         }
 
 
-    };
-    .store-down{
+    }
+
+    ;
+
+    .store-down {
         width: 100%;
         height: 500px;
         margin-top: -120px;
         color: white;
         background-image: url("../assets/Steam_Summer_Sale_pattern-04-day_lighter.gif");
     }
-    h5{
-        margin-left:20% ;
+
+    h5 {
+        margin-left: 20%;
     }
-    .swiper{
+
+    .swiper {
         width: 1000px;
         height: 360px;
         margin-left: 22%;
     }
 
 }
-
 </style>

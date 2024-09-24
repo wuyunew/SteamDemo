@@ -16,6 +16,7 @@ service.interceptors.request.use(
         if (steamToken) {
             config.headers['Authorization'] = 'Bearer ' + steamToken
         }
+        return config
 
     },
     function (error) {
@@ -27,16 +28,22 @@ service.interceptors.request.use(
 // 添加响应拦截器
 service.interceptors.response.use(
     (response) => {
-        const { code, data, msg } = response.data
-        if (code === 200) {
-            return response.data
+        const { status,data } = response
+        if (status === 200) {
+            return data
 
         } else {
+            console.log(response)
             ElMessage.error(msg || NETWORK_ERROR)
-            return Promise.reject(response.data)
+            return Promise.reject(data)
 
         }
     }
 );
 
-export default service;
+function request(options){
+    let isMock=configs.mock;
+    service.defaults.baseURL=isMock?configs.mockApi:configs.baseApi;
+    return service(options)
+}
+export default request;
