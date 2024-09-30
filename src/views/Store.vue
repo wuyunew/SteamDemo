@@ -1,7 +1,9 @@
 <script setup>
 import Swiper from '@/components/Swiper.vue';
-import { getRecommendationsApi } from '@/api/app';
-import { onMounted, ref } from 'vue';
+import { getRecommendationsApi, getSearchSuggestionsApi } from '@/api/app';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useSteamStore } from '../stores/SteamStore';
+const store = useSteamStore()
 const items = [
     { name: "您的商城", path: '/' },
     { name: "新鲜推荐", path: '/' },
@@ -11,9 +13,8 @@ const items = [
     { name: "实验室", path: '/' },
 
 ]
-//通过key的变化重新渲染组件，从而更新props的值
+//通过key的变化重新渲染组件，从而更新props的值。下面这部分是轮播图的代码实现
 const key = ref(0);
-
 const gamesList = ref(
     [
         {
@@ -28,28 +29,57 @@ const gamesList = ref(
             ]
         },]
 )
-//promise是异步的，所以刚开始recomm还是保持原样，过一段时间才正常
-/*
-recommendations{
-gamesList[
-{url:url of game,
- name:name of game,
- imgUrl:[0,1,2,3,4]
- 4是游戏主视图
-},
-]
-}
-*/
-
 const getRecommendations = () => {
     getRecommendationsApi().then((resolve, reject) => {
         gamesList.value = resolve.gamesList
         key.value = 1
     })
 }
+//下面这部分是搜索栏的代码实现，前端ajax的逻辑，最大的搜索数为limitnum，先从前端已经缓存的搜索结果中找，返回，不足的地方从后端返回。每次将更新结果存储
+const matchName = ref('')
+let localList = []
+const limitnum=9
+const getList = () => {
+    //获取已经缓存的搜索项,存储在pinia里,是地址对应相等
+    localList = store.searchList
+}
+const querySearch = (queryString, cb) => {
+    //前端搜索匹配的逻辑,先匹配本地
+    const searchList = []
+    for (let item of localList) {
+        if (item.includes(queryString)) {
+            if (searchList.length < limitnum)
+                searchList.push({ value: item })
+        }
+    }
+    if (searchList.length < limitnum) {
+        const data = {
+            keyword: queryString,
+            num: limitnum - searchList.length
+        }
+        getSearchSuggestionsApi(data).then((resolve, reject) => {
+            //对据的格式有要求，必须是一个数组对象，并且属性名为“value”
+            cb(searchList.concat(resolve))
+        })
+    }
+    else {
+        cb(searchList)
+    }
+}
+const getSearch = () => {
+    //返回搜索结果，更新localList，再更新localStore中的list
+    store.searchList.push(matchName.value)
+    localStorage.setItem('searchList',JSON.stringify(store.searchList))
+
+}
 onMounted(() => {
     getRecommendations()
+    getList()
 
+
+})
+onUnmounted(()=>{
+    localStorage.clear()
 })
 </script>
 
@@ -61,14 +91,12 @@ onMounted(() => {
                 <RouterLink class="stroe-top-nav-tab" v-for="{ name, path } in items" :key="name" :to="path">{{ name }}
                 </RouterLink>
                 <div class="store-top-nav-search">
-                    <!--不用el的组件，因为改样式很麻烦，而且不能自己写实现方法-->
-                    <input v-model="keyword" class="store-top-nav-search-input" placeholder="搜索"
-                        @input="getSearchSuggestionsDebounce()" type="text">
-                    <button @click=""></button>
-                    <!--搜索建议-->
-                    <div class="store-top-nav-search-suggestions">
-                        <!--待完成AJAX逻辑-->
-                    </div>
+                    <el-autocomplete v-model="matchName" placeholder="搜索" :debounce="0" :fetch-suggestions="querySearch"
+                        fit-input-width="true" @select="" />
+                    <el-button type="primary" size="default" @click="getSearch"><el-icon>
+                            <Search />
+                        </el-icon></el-button>
+
                 </div>
             </div>
         </div>
@@ -123,47 +151,12 @@ onMounted(() => {
             .store-top-nav-search {
                 width: 202px;
                 height: 80%;
-                border: 1px solid rgba(0, 0, 0, 0.3);
-                border-radius: 3px;
-                background-color: #316282;
                 margin-left: 355px;
                 display: flex;
 
-                &:hover {
-                    color: #0e1c25;
-                    border-color: #4c9acc;
-                }
+                .el-button {
+                    width: 20px;
 
-                input {
-                    border: 0;
-                    box-sizing: border-box;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0);
-
-                    &::placeholder {
-                        color: #0e1c25;
-                    }
-
-                    &:focus {
-                        outline: none;
-                    }
-                }
-
-                input[type="text"] {
-                    color: white;
-
-                }
-
-                button {
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 5px;
-                    background-image: url('../assets/search_icon_btn_over.png');
-                    background-size: cover;
-
-                    &:hover {
-                        cursor: pointer;
-                    }
                 }
             }
         }

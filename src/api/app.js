@@ -7,6 +7,19 @@ export const getRecommendationsApi = () => {
     });
 };
 
-export const getSearchSuggestionsApi = (keyword) => {
-    return null; // AJAX请求更新，待完成
+export const getSearchSuggestionsApi = (data) => {
+    //data{keyword:string,num:number} 返回值[{value:string}]
+    return request({
+        url:'/app/searchSuggestions',
+        method:'GET',
+        params:data
+    })
 };
+
+export const getSearchApi=(keyword)=>{
+    //返回搜索的url地址
+    return request({
+        url:'/app/search',
+        method:'GET',
+    })
+}

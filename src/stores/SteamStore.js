@@ -10,7 +10,8 @@ function initState() {
     userId: null,
     username: null,
     nickname: null,
-    avatar: null
+    avatar: null,
+    searchList:JSON.parse(localStorage.getItem('searchList'))||JSON.parse(sessionStorage.getItem('searchList'))||[],
   }
 }
 
@@ -29,7 +30,7 @@ export const useSteamStore = defineStore('steam', {
         nickname: state.nickname,
         avatar: state.avatar
       }
-    }
+    },
   },
   actions: {
     //注销
