@@ -1,6 +1,6 @@
 <script setup>
 import Swiper from '@/components/Swiper.vue';
-import { getRecommendationsApi, getSearchSuggestionsApi } from '@/api/app';
+import { getRecommendationsApi, getSearchSuggestionsApi,getGameListApi} from '@/api/app';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useSteamStore } from '../stores/SteamStore';
 const store = useSteamStore()
@@ -38,7 +38,7 @@ const getRecommendations = () => {
 //下面这部分是搜索栏的代码实现，前端ajax的逻辑，最大的搜索数为limitnum，先从前端已经缓存的搜索结果中找，返回，不足的地方从后端返回。每次将更新结果存储
 const matchName = ref('')
 let localList = []
-const limitnum=9
+const limitnum = 9
 const getList = () => {
     //获取已经缓存的搜索项,存储在pinia里,是地址对应相等
     localList = store.searchList
@@ -69,16 +69,44 @@ const querySearch = (queryString, cb) => {
 const getSearch = () => {
     //返回搜索结果，更新localList，再更新localStore中的list
     store.searchList.push(matchName.value)
-    localStorage.setItem('searchList',JSON.stringify(store.searchList))
+    localStorage.setItem('searchList', JSON.stringify(store.searchList))
 
+}
+
+//下面这部分是商品栏 新品与热门商品 热销商品等的代码实现
+let prebutton
+const showNum=10 //要展示的游戏数量为10，5行一页，做个分页器
+let gameList //所有要展示的游戏
+let curGameList//当前选择的游戏忠烈
+let curGame//当前选择的游戏
+const getImageUrl = (url) => {//vite里没有require，自己实现
+    return new URL(url, import.meta.url).href
+}
+const getGameList=()=>{ 
+    return getGameListApi().then((resolve,reject)=>{
+        gameList=resolve
+        curGameList=gameList['newAndHot']
+        curGame=curGameList[0]
+    })
+}
+const selcet=(index_str)=>{
+    //dom实现点击按钮样式切换
+    if(prebutton)
+    prebutton.style.backgroundColor='#1B2838'
+    const curButton=document.getElementById(index_str)
+    curButton.style.backgroundColor='#2A475E'
+    prebutton=curButton
+    //选择对应的游戏列表
+    curGameList=gameList[index_str]
+    
 }
 onMounted(() => {
     getRecommendations()
     getList()
-
+    getGameList()
 
 })
-onUnmounted(()=>{
+onUnmounted(() => {
     localStorage.clear()
 })
 </script>
@@ -105,6 +133,28 @@ onUnmounted(()=>{
             <div class="store-dowm-section">
                 <h5>精选与推荐</h5>
                 <Swiper class="swiper" :gamesList="gamesList" :key="key"></Swiper>
+            </div>
+            <!--新品与热门商品-->
+            <div class="store-down-newGame">
+                <div class="buttonList">
+                    <button id="newAndHot" @click="selcet('newAndHot')">新品与热门商品</button>
+                    <button id="hot" @click="selcet('hot')">热销商品</button>
+                    <button id="recent" @click="selcet('recent')">热门即将推出</button>
+                    <button id="off" @click="selcet('off')">优惠</button>
+                    <button id="free" @click="selcet('free')">热门免费游戏</button>
+                </div>
+                <div class="shopList">
+                    <div class="left">
+                        <div class="shopItem" v-for="item in curGameList">
+                            <img :src="getImageUrl(item.imgUrl[4])" alt="mian_pic">
+                            <span>{{ item.name }}</span>
+                        </div>
+                    </div>
+                    <div class="right">
+                         <h2>{{ curGame.name }}</h2>
+                         <img v-for="i in 4" :src="getImageUrl(curGame.imgUrl[i-1])" alt="">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -156,6 +206,7 @@ onUnmounted(()=>{
 
                 .el-button {
                     width: 20px;
+                    
 
                 }
             }
@@ -168,21 +219,36 @@ onUnmounted(()=>{
 
     .store-down {
         width: 100%;
-        height: 500px;
+        height: 100%;
         margin-top: -120px;
         color: white;
         background-image: url("../assets/Steam_Summer_Sale_pattern-04-day_lighter.gif");
+
+        h5 {
+            margin-left: 22%;
+        }
+
+        .swiper {
+            width: 1000px;
+            height: 360px;
+            margin-left: 22%;
+        }
+        .store-down-newGame{
+            margin-left: 22%;
+            margin-top: 20px;
+            button{
+                border-style: none;
+                color: #4F868E;
+                background-color: #1B2838;
+                &:hover{
+                    color: #ffffff;
+                    cursor: pointer;
+                }
+
+            }
+        }
     }
 
-    h5 {
-        margin-left: 20%;
-    }
-
-    .swiper {
-        width: 1000px;
-        height: 360px;
-        margin-left: 22%;
-    }
 
 }
 </style>
