@@ -1,7 +1,8 @@
+
 <script setup>
 import Swiper from '@/components/Swiper.vue';
-import { getRecommendationsApi, getSearchSuggestionsApi,getGameListApi} from '@/api/app';
-import { onMounted, onUnmounted, ref } from 'vue';
+import {  getSearchSuggestionsApi} from '@/api/app';
+import {  onMounted, onUnmounted, ref } from 'vue';
 import { useSteamStore } from '../stores/SteamStore';
 const store = useSteamStore()
 const items = [
@@ -13,28 +14,9 @@ const items = [
     { name: "实验室", path: '/' },
 
 ]
-//通过key的变化重新渲染组件，从而更新props的值。下面这部分是轮播图的代码实现
-const key = ref(0);
-const gamesList = ref(
-    [
-        {
-            url: "www.baidu.com",
-            name: "firstgame",
-            imgUrl: [
-                "../assets/img/u_02.jpg",
-                "../assets/img/zs_01.png",
-                "../assets/img/zs_02.jpg",
-                "../assets/img/zs_03.png",
-                "../assets/img/u_01.jpg"
-            ]
-        },]
-)
-const getRecommendations = () => {
-    getRecommendationsApi().then((resolve, reject) => {
-        gamesList.value = resolve.gamesList
-        key.value = 1
-    })
-}
+//轮播图数据
+const recommendList=JSON.parse(sessionStorage.getItem('recommendList'))
+
 //下面这部分是搜索栏的代码实现，前端ajax的逻辑，最大的搜索数为limitnum，先从前端已经缓存的搜索结果中找，返回，不足的地方从后端返回。每次将更新结果存储
 const matchName = ref('')
 let localList = []
@@ -74,21 +56,15 @@ const getSearch = () => {
 }
 
 //下面这部分是商品栏 新品与热门商品 热销商品等的代码实现
-let prebutton
+let prebutton //存储前一个点击的按钮
 const showNum=10 //要展示的游戏数量为10，5行一页，做个分页器
-let gameList //所有要展示的游戏
-let curGameList//当前选择的游戏忠烈
-let curGame//当前选择的游戏
+const gameList=JSON.parse(sessionStorage.getItem('gameList'))
+const curGameList=ref(gameList["newAndHot"])//当前选择的游戏种类
+const curGame=ref(curGameList.value[0])//当前选择的游戏
 const getImageUrl = (url) => {//vite里没有require，自己实现
     return new URL(url, import.meta.url).href
 }
-const getGameList=()=>{ 
-    return getGameListApi().then((resolve,reject)=>{
-        gameList=resolve
-        curGameList=gameList['newAndHot']
-        curGame=curGameList[0]
-    })
-}
+
 const selcet=(index_str)=>{
     //dom实现点击按钮样式切换
     if(prebutton)
@@ -100,11 +76,9 @@ const selcet=(index_str)=>{
     curGameList=gameList[index_str]
     
 }
-onMounted(() => {
-    getRecommendations()
-    getList()
-    getGameList()
 
+onMounted(() => {
+    getList()
 })
 onUnmounted(() => {
     localStorage.clear()
@@ -132,7 +106,7 @@ onUnmounted(() => {
             <!--精选与推荐-->
             <div class="store-dowm-section">
                 <h5>精选与推荐</h5>
-                <Swiper class="swiper" :gamesList="gamesList" :key="key"></Swiper>
+                <Swiper class="swiper" :recommendList="recommendList" :key="key"></Swiper>
             </div>
             <!--新品与热门商品-->
             <div class="store-down-newGame">
@@ -146,13 +120,13 @@ onUnmounted(() => {
                 <div class="shopList">
                     <div class="left">
                         <div class="shopItem" v-for="item in curGameList">
-                            <img :src="getImageUrl(item.imgUrl[4])" alt="mian_pic">
-                            <span>{{ item.name }}</span>
+                            <img :src="getImageUrl(item.imgUrl[4])" alt="">
+                            <p>{{ item.name }}</p>
                         </div>
                     </div>
                     <div class="right">
-                         <h2>{{ curGame.name }}</h2>
-                         <img v-for="i in 4" :src="getImageUrl(curGame.imgUrl[i-1])" alt="">
+                        <p>{{ curGame.name }}</p>
+                        <img v-for="i in 4" :src="getImageUrl(curGame.imgUrl[i-1])" alt="">
                     </div>
                 </div>
             </div>
@@ -245,6 +219,12 @@ onUnmounted(() => {
                     cursor: pointer;
                 }
 
+            }
+            .shopList{
+                width: 100%;
+                height: 100%;
+                display: flex;
+                background-color:#1B2838;
             }
         }
     }

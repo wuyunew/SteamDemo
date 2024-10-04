@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted,toRef,toRefs, onUpdated } from 'vue';
 
-const {gamesList} = defineProps(['gamesList'])//因为可能不止一个prop
+const {recommendList} = defineProps(['recommendList'])//因为可能不止一个prop
 
-const num=gamesList.length      
+const num=recommendList.length      
 let curnum = ref(0)//当前显示的是第几个游戏
 let curindex = ref(4)//当前游戏显示的是哪张主视图，第五张为默认主视图
 let timer //定时器
@@ -50,12 +50,12 @@ onUnmounted(() => {
         <div class="pre" @click="prevGame"> <img src="../assets/arrow_left.png" alt="pre"></div>
         <div class="content">
             <div class="content-left">
-                <img :src="getImageUrl(gamesList[curnum].imgUrl[curindex])" alt="pic_mian">
+                <img :src="getImageUrl(recommendList[curnum].imgUrl[curindex])" alt="pic_mian">
             </div>
             <div class="content-right">
-                <div class="name">{{ gamesList[curnum].name }}</div>
+                <div class="name">{{ recommendList[curnum].name }}</div>
                 <div class="imgList">
-                    <img v-for="i in 4" :key=i :src="getImageUrl(gamesList[curnum].imgUrl[i - 1])"
+                    <img v-for="i in 4" :key=i :src="getImageUrl(recommendList[curnum].imgUrl[i - 1])"
                         @mouseenter="selectMainImg(i - 1)" @mouseleave="resetMainImg">
                 </div>
                 <div class="end">现已推出</div>

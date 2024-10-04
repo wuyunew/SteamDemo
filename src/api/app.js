@@ -27,9 +27,8 @@ export const getSearchApi=(keyword)=>{
 export const getGameListApi=()=>{
     //返回的对象有5种属性newAndHot(新品与热门),hot（热销）,recent（热门即将推出）,off（优惠）,free（热门免费游戏），每种属性的值都是游戏数组，数组包含内容和前面的API相同
     return request({
-        url:'/app/gamelist',
+        url:'/app/gameList',
         method:'GET',
-        params:kind
     })
 
 }
