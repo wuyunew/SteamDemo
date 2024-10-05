@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-
+//公共部分api，不需要token登录验证
 export const getRecommendationsApi = () => {
     //轮播图中的推荐游戏
     return request({

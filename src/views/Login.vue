@@ -1,4 +1,38 @@
 <script setup>
+import { useSteamStore } from '@/stores/SteamStore';
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+const store=useSteamStore()
+const route=useRoute()
+const router=useRouter()
+
+const username=ref('')
+const password=ref('')
+const rememberMe=ref(true)
+const errMsg=ref('')
+const loading=ref(false)
+//apifox预设的两个账号，usr:wuyu,psw:wuyu;usr:atri,psw:atri
+const login=()=>{
+    if(!username.value||!password.value)
+    return
+    loading.value=true
+    //pinia
+    const loginInformation={
+        username:username.value,
+        password:password.value,
+        rememberMe:rememberMe.value
+    }
+    store.login(loginInformation).then(()=>{
+        //重定向到之前界面或者主页
+        router.push({path:route.query.redir||'/'})
+    }).catch((reason)=>{
+        loading.value=false
+        errMsg.value=reason.message
+    })
+}
+const clearErrMsg=()=>{
+    errMsg.value=''
+}
 
 </script>
 

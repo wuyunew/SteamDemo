@@ -1,3 +1,4 @@
+
 import request from '../utils/request'
 
 
@@ -6,7 +7,9 @@ export default{
         return request({
             url: '/user/login',
             method: 'POST',
-            data
+            //quary传参
+            params:data
+            //如果是body传参直接data
         })
     },
     getUserInfoApi(userId) {

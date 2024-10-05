@@ -11,7 +11,7 @@ function initState() {
     username: null,
     nickname: null,
     avatar: null,
-    searchList:JSON.parse(localStorage.getItem('searchList'))||JSON.parse(sessionStorage.getItem('searchList'))||[],
+    searchList: JSON.parse(localStorage.getItem('searchList')) || JSON.parse(sessionStorage.getItem('searchList')) || [],
   }
 }
 
@@ -42,10 +42,12 @@ export const useSteamStore = defineStore('steam', {
       router.go(0)
     },
     //登录
-    login({ username, password, rememberMe }) {
+    async login({ username, password, rememberMe }) {
       //axios 实例是Promise对象
       //then的参数是promise兑现时的回调参数
-      return loginApi({ username, password }).then(({ data }) => {
+      return await loginApi({ username, password }).then(({ data }) => {
+        console.log({username,password})
+        console.log(data)
         const { token } = data
         this.token = token
         if (rememberMe) {
@@ -58,9 +60,9 @@ export const useSteamStore = defineStore('steam', {
       })
     },
     //获取用户信息
-    getUserInfo() {
+    async getUserInfo() {
       if (!this.token) return Promise.reject(new Error('You must be logged in'))
-      return getUserInfoApi(this.userId).then(({ data }) => {
+      return await getUserInfoApi(this.userId).then(({ data }) => {
         this.userId = data.userId;
         this.username = data.username;
         this.nickname = data.nickname;
