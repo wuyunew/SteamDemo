@@ -262,8 +262,10 @@ onUnmounted(() => {
                 }
                 .right{
                     background-color: #A5CADF;
+                    margin-top: 5px;
                     width: 33%;
-            
+                    padding-left: 1%;
+                    border-radius: 5px;
                     p{
                         margin-top: 7px;
                         font-size: larger;

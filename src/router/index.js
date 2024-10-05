@@ -37,7 +37,9 @@ const router = createRouter({
     }
   ]
 })
-
+router.beforeEach((to,from)=>{
+  //确认登陆状态 待完成
+})
 //在vueRouter中设置全局解析守卫统一在渲染前取得数据，通过SessionStorage传递数据
 router.beforeResolve(async to=>{
   if(to.name=='store'){
