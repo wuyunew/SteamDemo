@@ -73,8 +73,14 @@ const selcet=(index_str)=>{
     curButton.style.backgroundColor='#2A475E'
     prebutton=curButton
     //选择对应的游戏列表
-    curGameList=gameList[index_str]
+    curGameList.value=gameList[index_str]
+    curGame.value=curGameList.value[0]
     
+}
+const selectCurGame=(item)=>{
+    //选中当前游戏
+    curGame.value=item
+
 }
 
 onMounted(() => {
@@ -119,9 +125,10 @@ onUnmounted(() => {
                 </div>
                 <div class="shopList">
                     <div class="left">
-                        <div class="shopItem" v-for="item in curGameList">
+                        <div class="shopItem" v-for="item in curGameList" @mouseenter="selectCurGame(item)">
                             <img :src="getImageUrl(item.imgUrl[4])" alt="">
                             <p>{{ item.name }}</p>
+                            <div class="connect"></div>
                         </div>
                     </div>
                     <div class="right">
@@ -221,10 +228,54 @@ onUnmounted(() => {
 
             }
             .shopList{
-                width: 100%;
+                width: 1000px;
                 height: 100%;
                 display: flex;
-                background-color:#1B2838;
+                background-color:#2A475E;
+                .left{
+                    width: 67%;
+                    .shopItem{
+                        display: flex;
+                        margin-top: 5px;
+                        height: 80px;
+                        background-color: #1B2838;
+                        &:hover{
+                            background-color: #A5CADF;
+                            .connect{
+                                background-color:#A5CADF;
+                            }
+                        }
+                        .connect{
+                            margin-left: auto;
+                            width: 2%;
+                            background-color: #2A475E;
+                        }
+                        img{
+                            height: 100%;
+                            width: 150px;
+                        }
+                        p{
+                            margin-left: 20px;
+                            margin-top: 5px;
+                        }
+                    }
+                }
+                .right{
+                    background-color: #A5CADF;
+                    width: 33%;
+            
+                    p{
+                        margin-top: 7px;
+                        font-size: larger;
+                        margin-bottom: 0%;
+                    }
+                    img{
+                        margin-top: 10px;
+                        width: 97%;
+                        height: 180px;
+                    }
+                }
+        
             }
         }
     }
