@@ -14,7 +14,7 @@ service.interceptors.request.use(
         // 在发送请求之前做将token添加到请求头
         let steamToken = localStorage.getItem('steamToken')
         if (steamToken) {
-            config.headers['Authorization'] = 'Bearer ' + steamToken
+            config.headers['Authorization'] = steamToken
         }
         return config
 

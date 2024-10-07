@@ -23,6 +23,8 @@ const login=()=>{
         rememberMe:rememberMe.value
     }
     store.login(loginInformation).then(()=>{
+        store.getUserInfo(rememberMe.value)
+    }).then(()=>{
         //重定向到之前界面或者主页
         router.push({path:route.query.redir||'/'})
     }).catch((reason)=>{

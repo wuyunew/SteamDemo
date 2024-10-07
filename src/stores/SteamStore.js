@@ -1,17 +1,19 @@
 import { defineStore } from 'pinia'
-
 import api from '../api/user'
 import router from '@/router'
 //在组合式写法中在 Setup Store 中：ref() 就是 state 属性, computed() 就是 getters, function() 就是 actions
 //选项式语法
 function initState() {
   return {
-    token: JSON.parse(localStorage.getItem('steamToken')) || JSON.parse(sessionStorage.getItem('steamToken')) || null,
-    userId: null,
-    username: null,
-    nickname: null,
-    avatar: null,
-    searchList: JSON.parse(localStorage.getItem('searchList')) || JSON.parse(sessionStorage.getItem('searchList')) || [],
+    
+    token: JSON.parse(localStorage.getItem('steamToken')|| sessionStorage.getItem('steamToken')||("null")),
+    tokenStartTime:JSON.parse(localStorage.getItem('tokenStartTime')|| sessionStorage.getItem('tokenStartTime')||("null")),
+    userId: JSON.parse(localStorage.getItem('userId')||sessionStorage.getItem('userId')||("null")) ,
+    username: JSON.parse(localStorage.getItem('username')||sessionStorage.getItem('username')||("null")),
+    nickname: JSON.parse(localStorage.getItem('nickname')||sessionStorage.getItem('nickname')||("null")),
+    headImg:JSON.parse(localStorage.getItem('headImg')||sessionStorage.getItem('headImg')||("null")),
+    searchList: JSON.parse(localStorage.getItem('searchList')||sessionStorage.getItem('searchList')||("[]")),
+
   }
 }
 
@@ -28,15 +30,15 @@ export const useSteamStore = defineStore('steam', {
         userId: state.userId,
         username: state.username,
         nickname: state.nickname,
-        avatar: state.avatar
+        headImg:state.headImg,
       }
     },
   },
   actions: {
     //注销
     logout() {
-      localStorage.removeItem('steamToken')
-      sessionStorage.removeItem('steamToken')
+      localStorage.clear()
+      sessionStorage.clear()
       this.$reset()
       //刷新
       router.go(0)
@@ -46,27 +48,41 @@ export const useSteamStore = defineStore('steam', {
       //axios 实例是Promise对象
       //then的参数是promise兑现时的回调参数
       return await loginApi({ username, password }).then(({ data }) => {
-        console.log({username,password})
-        console.log(data)
         const { token } = data
         this.token = token
+        const loginDate=new Date()
+        this.tokenStartTime=loginDate.getTime()
         if (rememberMe) {
           localStorage.setItem('steamToken', JSON.stringify(token))
+          localStorage.setItem('tokenStartTime',JSON.stringify(this.tokenStartTime))
         } else {
           sessionStorage.setItem('steamToken', JSON.stringify(token))
+          sessionStorage.setItem('tokenStartTime',JSON.stringify(this.tokenStartTime))
         }
       }).catch((err) => {
         throw new Error(err)
       })
     },
     //获取用户信息
-    async getUserInfo() {
-      if (!this.token) return Promise.reject(new Error('You must be logged in'))
-      return await getUserInfoApi(this.userId).then(({ data }) => {
+    async getUserInfo(rememberMe) {
+      return await getUserInfoApi().then(({ data }) => {
         this.userId = data.userId;
         this.username = data.username;
         this.nickname = data.nickname;
-        this.avatar = data.avatar;
+        this.headImg=data.headImg;
+        console.log('success')
+        if(rememberMe)
+        {
+          localStorage.setItem('userId',JSON.stringify(this.userId))
+          localStorage.setItem('username',JSON.stringify(this.username))
+          localStorage.setItem('nickname',JSON.stringify(this.nickname))
+          localStorage.setItem('headImg',JSON.stringify(this.headImg))
+        }else{
+          sessionStorage.setItem('userId',JSON.stringify(this.userId))
+          sessionStorage.setItem('username',JSON.stringify(this.username))
+          sessionStorage.setItem('nickname',JSON.stringify(this.nickname))
+          sessionStorage.setItem('headImg',JSON.stringify(this.headImg))
+        }
       }).catch((err) => {
         throw new Error(err)
       })

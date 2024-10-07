@@ -12,11 +12,11 @@ export default{
             //如果是body传参直接data
         })
     },
-    getUserInfoApi(userId) {
+    getUserInfoApi() {
+        //通过token验证信息，requset中
         return request({
             url: '/user/info',
             method: 'GET',
-            params: { userId }
         })
     }
 }

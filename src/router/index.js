@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Store from '../views/Store.vue'
 import {getGameListApi,getRecommendationsApi} from "../api/app"
+import { useSteamStore } from '@/stores/SteamStore'
+import Store from '@/views/Store.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -37,8 +38,22 @@ const router = createRouter({
     }
   ]
 })
+
 router.beforeEach((to,from)=>{
-  //确认登陆状态 待完成
+  //确认登陆状态,token是否过期,如果token过期则重置state数据
+  const token=JSON.parse(localStorage.getItem('steamToken')||sessionStorage.getItem('steamToken')||("null"))
+  if(token)
+  {
+    const steamStore=useSteamStore()
+    console.log(steamStore.$state)
+    const timeOver=24*3600*1000//token过期事件为一天
+    const date=new Date().getTime()
+    if(date-steamStore.tokenStartTime>timeOver)
+    {
+      //token 过期
+      steamStore.logout()
+    }
+  }
 })
 //在vueRouter中设置全局解析守卫统一在渲染前取得数据，通过SessionStorage传递数据
 router.beforeResolve(async to=>{

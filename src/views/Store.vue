@@ -86,9 +86,7 @@ const selectCurGame=(item)=>{
 onMounted(() => {
     getList()
 })
-onUnmounted(() => {
-    localStorage.clear()
-})
+
 </script>
 
 <template>
