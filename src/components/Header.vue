@@ -81,6 +81,8 @@ const logout=()=>{
                     @click="gotoStore">主页</el-button></el-dropdown-item>
                 <el-dropdown-item><el-button type="text" size="default" @click="gotoWishList">愿望单</el-button>
                 </el-dropdown-item>
+                <el-dropdown-item><el-button type="text" size="default"
+                  @click="">探索队列</el-button></el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

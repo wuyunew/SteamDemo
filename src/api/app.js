@@ -9,11 +9,11 @@ export const getRecommendationsApi = () => {
 };
 
 export const getSearchSuggestionsApi = (data) => {
-    //data{keyword:string,num:number} 返回值[{value:string}]
+    const query={matchName:data};
     return request({
         url:'/app/searchSuggestions',
         method:'GET',
-        params:data
+        params:query,
     })
 };
 

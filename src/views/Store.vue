@@ -1,9 +1,10 @@
-
 <script setup>
 import Swiper from '@/components/Swiper.vue';
-import {  getSearchSuggestionsApi} from '@/api/app';
-import {  onMounted, onUnmounted, ref } from 'vue';
+
+import { computed, onMounted, ref } from 'vue';
 import { useSteamStore } from '../stores/SteamStore';
+import router from '@/router';
+import { debounce, throttle } from '@/utils/wrapper'
 const store = useSteamStore()
 const items = [
     { name: "您的商城", path: '/' },
@@ -14,91 +15,61 @@ const items = [
     { name: "实验室", path: '/' },
 
 ]
+
+//搜索框
+const querySearch = async (queryString, cb) => {
+    const suggestions = await store.fetchSearchSuggestions(queryString)
+    const limitnum = 5;
+    const searchList = suggestions.slice(0, limitnum).map(item => ({ value: item }));
+    cb(searchList)
+};
+const debounceQuerySearch = debounce(querySearch, 300);
+const matchName = ref('');
+const getSearch = async () => {
+    const router = await store.searchGame(matchName.value)
+    router.push('/search')
+}
+const throttleGetSearch = throttle(getSearch, 1000);
+
 //轮播图数据
-const recommendList=JSON.parse(sessionStorage.getItem('recommendList'))
+const recommendList = computed(() => store.recommendList)
 
-//下面这部分是搜索栏的代码实现，前端ajax的逻辑，最大的搜索数为limitnum，先从前端已经缓存的搜索结果中找，返回，不足的地方从后端返回。每次将更新结果存储
-const matchName = ref('')
-let localList = []
-const limitnum = 9
-const getList = () => {
-    //获取已经缓存的搜索项,存储在pinia里,是地址对应相等
-    localList = store.searchList
-}
-const querySearch = (queryString, cb) => {
-    //前端搜索匹配的逻辑,先匹配本地
-    const searchList = []
-    for (let item of localList) {
-        if (item.includes(queryString)) {
-            if (searchList.length < limitnum)
-                searchList.push({ value: item })
-        }
-    }
-    if (searchList.length < limitnum) {
-        const data = {
-            keyword: queryString,
-            num: limitnum - searchList.length
-        }
-        getSearchSuggestionsApi(data).then((resolve, reject) => {
-            //对据的格式有要求，必须是一个数组对象，并且属性名为“value”
-            cb(searchList.concat(resolve))
-        })
-    }
-    else {
-        cb(searchList)
-    }
-}
-const getSearch = () => {
-    //返回搜索结果，更新localList，再更新localStore中的list
-    store.searchList.push(matchName.value)
-    localStorage.setItem('searchList', JSON.stringify(store.searchList))
 
-}
-
-//下面这部分是商品栏 新品与热门商品 热销商品等的代码实现
-let prebutton //存储前一个点击的按钮
-const showNum=10 //要展示的游戏数量为10，5行一页，做个分页器
-const gameList=JSON.parse(sessionStorage.getItem('gameList'))
-const curGameList=ref(gameList["newAndHot"])//当前选择的游戏种类
-const curGame=ref(curGameList.value[0])//当前选择的游戏
-const getImageUrl = (url) => {//vite里没有require，自己实现
-    return new URL(url, import.meta.url).href
-}
-
-const selcet=(index_str)=>{
-    //dom实现点击按钮样式切换
-    if(prebutton)
-    prebutton.style.backgroundColor='#1B2838'
-    const curButton=document.getElementById(index_str)
-    curButton.style.backgroundColor='#2A475E'
-    prebutton=curButton
-    //选择对应的游戏列表
-    curGameList.value=gameList[index_str]
-    curGame.value=curGameList.value[0]
-    
-}
-const selectCurGame=(item)=>{
-    //选中当前游戏
-    curGame.value=item
-
-}
-
-onMounted(() => {
-    getList()
+//商品栏
+const getImageUrl = store.getImageUrl
+const gameList = computed(() => store.gameList);
+const active=ref({
+    category: 'newAndHot',
+    index: 0
 })
+const curGameList = computed(() => gameList.value[active.value.category])   ;
+const curGame=computed(()=>curGameList.value[active.value.index])
 
+const selectCategory = (index_str) => { active.value.category = index_str }
+const selectCurGame = (item) => { active.value.index = curGameList.value.indexOf(item) }
+//愿望单
+const token = ref(store.token)
+store.$subscribe(() => {
+    token.value = store.token
+})
+const gotoWishList = () => {
+    router.push('/wishlist')
+}
 </script>
 
 <template>
     <div class="store">
         <div class="store-top">
             <!--导航栏-->
+            <div class="wishlist" v-if="token"><el-button type="primary" size="small"
+                    @click="gotoWishList">愿望单</el-button>
+            </div>
             <div class="store-top-nav">
                 <RouterLink class="stroe-top-nav-tab" v-for="{ name, path } in items" :key="name" :to="path">{{ name }}
                 </RouterLink>
                 <div class="store-top-nav-search">
-                    <el-autocomplete v-model="matchName" placeholder="搜索" :debounce="0" :fetch-suggestions="querySearch"
-                        fit-input-width="true" @select="" />
+                    <el-autocomplete v-model="matchName" placeholder="搜索" :fetch-suggestions="debounceQuerySearch"
+                        fit-input-width="true" @select="throttleGetSearch" />
                     <el-button type="primary" size="default" @click="getSearch"><el-icon>
                             <Search />
                         </el-icon></el-button>
@@ -110,28 +81,31 @@ onMounted(() => {
             <!--精选与推荐-->
             <div class="store-dowm-section">
                 <h5>精选与推荐</h5>
-                <Swiper class="swiper" :recommendList="recommendList" :key="key"></Swiper>
+                <Swiper class="swiper" v-if="recommendList" :recommendList="recommendList"></Swiper>
             </div>
             <!--新品与热门商品-->
             <div class="store-down-newGame">
                 <div class="buttonList">
-                    <button id="newAndHot" @click="selcet('newAndHot')">新品与热门商品</button>
-                    <button id="hot" @click="selcet('hot')">热销商品</button>
-                    <button id="recent" @click="selcet('recent')">热门即将推出</button>
-                    <button id="off" @click="selcet('off')">优惠</button>
-                    <button id="free" @click="selcet('free')">热门免费游戏</button>
+                    <button 
+                    :id="category" 
+                    v-for="category in ['newAndHot', 'hot', 'recent', 'off', 'free']"
+                    @click="selectCategory(category)">{{ category }}</button>
                 </div>
                 <div class="shopList">
                     <div class="left">
-                        <div class="shopItem" v-for="item in curGameList" @mouseenter="selectCurGame(item)">
+                        <div class="shopItem" 
+                        v-for="item in curGameList" 
+                        @mouseenter="selectCurGame(item)">
                             <img :src="getImageUrl(item.imgUrl[4])" alt="">
                             <p>{{ item.name }}</p>
                             <div class="connect"></div>
                         </div>
                     </div>
                     <div class="right">
-                        <p>{{ curGame.name }}</p>
-                        <img v-for="i in 4" :src="getImageUrl(curGame.imgUrl[i-1])" alt="">
+                        <template v-if="curGame">
+                            <p>{{ curGame.name }}</p> <!-- 修改这里，直接访问 curGame 的 name 属性 -->
+                            <img v-for="i in 4" :key="i" :src="getImageUrl(curGame.imgUrl[i - 1])" alt="">
+                        </template>
                     </div>
                 </div>
             </div>
@@ -149,11 +123,19 @@ onMounted(() => {
 
     .store-top {
         height: 740px;
-        padding-top: 27px;
+        padding-top: 10px;
         display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
         justify-content: center;
         background-image: url("../assets/home_header_bg_day_schinese.gif");
         background-position: center;
+
+        .wishlist {
+            width: 100%;
+            padding-bottom: 5px;
+            margin-left: 1242px;
+        }
 
         .store-top-nav {
             width: 920px;
@@ -185,7 +167,7 @@ onMounted(() => {
 
                 .el-button {
                     width: 20px;
-                    
+
 
                 }
             }
@@ -212,70 +194,84 @@ onMounted(() => {
             height: 360px;
             margin-left: 22%;
         }
-        .store-down-newGame{
+
+        .store-down-newGame {
             margin-left: 22%;
             margin-top: 20px;
-            button{
+
+            button {
                 border-style: none;
                 color: #4F868E;
                 background-color: #1B2838;
-                &:hover{
+
+                &:hover {
                     color: #ffffff;
                     cursor: pointer;
                 }
 
             }
-            .shopList{
+
+            .shopList {
                 width: 1000px;
                 height: 100%;
                 display: flex;
-                background-color:#2A475E;
-                .left{
+                background-color: #2A475E;
+
+                .left {
                     width: 67%;
-                    .shopItem{
+
+                    .shopItem {
                         display: flex;
                         margin-top: 5px;
                         height: 80px;
                         background-color: #1B2838;
-                        &:hover{
+
+                        &:hover {
                             background-color: #A5CADF;
-                            .connect{
-                                background-color:#A5CADF;
+
+                            .connect {
+                                background-color: #A5CADF;
                             }
                         }
-                        .connect{
+
+                        .connect {
                             margin-left: auto;
                             width: 2%;
                             background-color: #2A475E;
                         }
-                        img{
+
+                        img {
                             height: 100%;
                             width: 150px;
                         }
-                        p{
+
+                        p {
                             margin-left: 20px;
                             margin-top: 5px;
                         }
                     }
                 }
-                .right{
+
+                .right {
                     background-color: #A5CADF;
                     margin-top: 5px;
                     width: 33%;
                     padding-left: 1%;
                     border-radius: 5px;
-                    p{
+
+                    p {
                         margin-top: 7px;
                         font-size: larger;
                         margin-bottom: 0%;
                     }
-                    img{
+
+                    img {
                         margin-top: 10px;
                         width: 97%;
                         height: 180px;
                     }
                 }
-        
+
             }
         }
     }

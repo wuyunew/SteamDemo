@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import {getGameListApi,getRecommendationsApi} from "../api/app"
+import{ getWishlistApi}from"../api/wishlist"
 import { useSteamStore } from '@/stores/SteamStore'
 import Store from '@/views/Store.vue'
 const router = createRouter({
@@ -72,10 +73,24 @@ router.beforeResolve(async to=>{
         sessionStorage.setItem('gameList',JSON.stringify(gameList))
       })
     }
-  }else if(to.name=='login'){
-
+  }else if(to.name=='wishlist'){
+    //愿望单数据
+    if(!sessionStorage.getItem('wishlist')){
+      await getWishlistApi().then((resolve)=>{
+        const wishlist=resolve
+        sessionStorage.setItem('wishlist',JSON.stringify(wishlist))
+      })
+    }
   }
 })
-
+router.afterEach((to,from)=>{
+  //重定向
+  const token=JSON.parse(localStorage.getItem('steamToken')||sessionStorage.getItem('steamToken')||("null"))
+  if(!token){
+    if(!(to.name=='login'||to.name=='store')){
+      router.push({name:'store'})
+    }
+  }
+})
 
 export default router

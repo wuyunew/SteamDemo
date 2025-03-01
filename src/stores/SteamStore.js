@@ -1,93 +1,93 @@
 import { defineStore } from 'pinia'
-import api from '../api/user'
-import router from '@/router'
-//在组合式写法中在 Setup Store 中：ref() 就是 state 属性, computed() 就是 getters, function() 就是 actions
-//选项式语法
-function initState() {
-  return {
-    
-    token: JSON.parse(localStorage.getItem('steamToken')|| sessionStorage.getItem('steamToken')||("null")),
-    tokenStartTime:JSON.parse(localStorage.getItem('tokenStartTime')|| sessionStorage.getItem('tokenStartTime')||("null")),
-    userId: JSON.parse(localStorage.getItem('userId')||sessionStorage.getItem('userId')||("null")) ,
-    username: JSON.parse(localStorage.getItem('username')||sessionStorage.getItem('username')||("null")),
-    nickname: JSON.parse(localStorage.getItem('nickname')||sessionStorage.getItem('nickname')||("null")),
-    headImg:JSON.parse(localStorage.getItem('headImg')||sessionStorage.getItem('headImg')||("null")),
-    searchList: JSON.parse(localStorage.getItem('searchList')||sessionStorage.getItem('searchList')||("[]")),
+import { loginApi } from '@/api/user'
+import { getRecommendationsApi, getSearchApi, getSearchSuggestionsApi, getGameListApi } from '@/api/app'
+import { ref } from 'vue'
+
+export const useSteamStore = defineStore("steam", () => {
+  //初始就获取，不需要缓存
+  const recommendList = ref();
+  const gameList = ref({});//用于存储游戏列表
+
+  //需要缓存
+  const token = ref();
+  const searchSuggestionsCache = ref({});
+  async function initState() {
+
+    //加载推荐列表
+    try {
+      const data = await getRecommendationsApi();
+      recommendList.value = data;
+    } catch (err) {
+      console.error('Failed to fetch recommendations:', err)
+    }
+    //加载游戏列表
+    try {
+      const data = await getGameListApi();
+      gameList.value = data;
+    }
+    catch (err) {
+      console.error('Failed to fetch game list:', err)
+    }
+    //加载token缓存
+    token.value = JSON.parse(localStorage.getItem('steamToken')) || JSON.parse(sessionStorage.getItem('steamToken'))
+
+    //加载搜索提示缓存
+    const catchedSearchSuggestions = localStorage.getItem('steamSearchSuggestions');
+    if (catchedSearchSuggestions) {
+      searchSuggestionsCache.value = JSON.parse(catchedSearchSuggestions);
+    }
+
 
   }
-}
 
-const { loginApi, getUserInfoApi } = api
-
-export const useSteamStore = defineStore('steam', {
-
-  state: () => initState(),
-  getters: {
-    //计算属性
-    //Getter 只是幕后的计算属性，所以不可以向它们传递任何参数。
-    userInfo: (state) => {
-      return {
-        userId: state.userId,
-        username: state.username,
-        nickname: state.nickname,
-        headImg:state.headImg,
+  async function login({ username, password, rememberMe }) {
+    try {
+      const { data } = await loginApi({ username, password });
+      const { responseToken } = data;
+      token.value = responseToken;
+      if (rememberMe) {
+        localStorage.setItem('steamToken', JSON.stringify(responseToken))
+      } else {
+        sessionStorage.setItem('steamToken', JSON.stringify(responseToken))
       }
-    },
-  },
-  actions: {
-    //注销
-    logout() {
-      localStorage.clear()
-      sessionStorage.clear()
-      this.$reset()
-      //刷新
-      router.go(0)
-    },
-    //登录
-    async login({ username, password, rememberMe }) {
-      //axios 实例是Promise对象
-      //then的参数是promise兑现时的回调参数
-      return await loginApi({ username, password }).then(({ data }) => {
-        const { token } = data
-        this.token = token
-        const loginDate=new Date()
-        this.tokenStartTime=loginDate.getTime()
-        if (rememberMe) {
-          localStorage.setItem('steamToken', JSON.stringify(token))
-          localStorage.setItem('tokenStartTime',JSON.stringify(this.tokenStartTime))
-        } else {
-          sessionStorage.setItem('steamToken', JSON.stringify(token))
-          sessionStorage.setItem('tokenStartTime',JSON.stringify(this.tokenStartTime))
-        }
-      }).catch((err) => {
-        throw new Error(err)
-      })
-    },
-    //获取用户信息
-    async getUserInfo(rememberMe) {
-      return await getUserInfoApi().then(({ data }) => {
-        this.userId = data.userId;
-        this.username = data.username;
-        this.nickname = data.nickname;
-        this.headImg=data.headImg;
-        console.log('success')
-        if(rememberMe)
-        {
-          localStorage.setItem('userId',JSON.stringify(this.userId))
-          localStorage.setItem('username',JSON.stringify(this.username))
-          localStorage.setItem('nickname',JSON.stringify(this.nickname))
-          localStorage.setItem('headImg',JSON.stringify(this.headImg))
-        }else{
-          sessionStorage.setItem('userId',JSON.stringify(this.userId))
-          sessionStorage.setItem('username',JSON.stringify(this.username))
-          sessionStorage.setItem('nickname',JSON.stringify(this.nickname))
-          sessionStorage.setItem('headImg',JSON.stringify(this.headImg))
-        }
-      }).catch((err) => {
-        throw new Error(err)
-      })
-    },
-
+      return responseToken;
+    } catch (err) {
+      console.error('Failed to login:', err)
+    }
   }
+  async function fetchSearchSuggestions(query) {
+    if (searchSuggestionsCache.value[query]) {
+      return searchSuggestionsCache.value[query];
+    }
+    try {
+      const response = await getSearchSuggestionsApi(query);
+      const data = response[query] || [];
+      searchSuggestionsCache.value[query] = data;
+      localStorage.setItem('steamSearchSuggestions', JSON.stringify(searchSuggestionsCache.value));
+    } catch (err) {
+      console.error('Failed to fetch search suggestions:', err)
+    }
+  }
+  async function searchGame(matchName) {
+    try {
+      const { data } = await getSearchApi(matchName);
+      return data;
+    } catch (err) {
+      console.error('Failed to search game:', err)
+    }
+  }
+
+
+  function getImageUrl(url) {
+    return new URL(url, import.meta.url).href
+  }
+
+
+
+  initState();
+
+
+
+  return { token, recommendList, gameList, login, fetchSearchSuggestions, searchGame, getImageUrl }
 
 })
