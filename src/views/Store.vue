@@ -1,10 +1,9 @@
 <script setup>
 import Swiper from '@/components/Swiper.vue';
-
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useSteamStore } from '../stores/SteamStore';
-import router from '@/router';
 import { debounce, throttle } from '@/utils/wrapper'
+import router from '@/router';
 const store = useSteamStore()
 const items = [
     { name: "您的商城", path: '/' },
@@ -16,6 +15,7 @@ const items = [
 
 ]
 
+
 //搜索框
 const querySearch = async (queryString, cb) => {
     const suggestions = await store.fetchSearchSuggestions(queryString)
@@ -26,10 +26,10 @@ const querySearch = async (queryString, cb) => {
 const debounceQuerySearch = debounce(querySearch, 300);
 const matchName = ref('');
 const getSearch = async () => {
-    const router = await store.searchGame(matchName.value)
-    router.push('/search')
+    //matchName为待搜索的游戏，搜索功能待写
 }
 const throttleGetSearch = throttle(getSearch, 1000);
+
 
 //轮播图数据
 const recommendList = computed(() => store.recommendList)
@@ -38,15 +38,22 @@ const recommendList = computed(() => store.recommendList)
 //商品栏
 const getImageUrl = store.getImageUrl
 const gameList = computed(() => store.gameList);
-const active=ref({
+const active = ref({
     category: 'newAndHot',
     index: 0
 })
-const curGameList = computed(() => gameList.value[active.value.category])   ;
-const curGame=computed(()=>curGameList.value[active.value.index])
-
+const curGameList = computed(() => gameList.value[active.value.category]);
+const curGame = computed(() => curGameList.value[active.value.index])
 const selectCategory = (index_str) => { active.value.category = index_str }
 const selectCurGame = (item) => { active.value.index = curGameList.value.indexOf(item) }
+const gotoGamePage=(item)=>{
+    //先跳转到GamePage，再加载数据
+    const {name}=item
+    router.push({name:'gamePage',params:{gameName:name}})
+    
+}
+
+
 //愿望单
 const token = ref(store.token)
 store.$subscribe(() => {
@@ -86,16 +93,13 @@ const gotoWishList = () => {
             <!--新品与热门商品-->
             <div class="store-down-newGame">
                 <div class="buttonList">
-                    <button 
-                    :id="category" 
-                    v-for="category in ['newAndHot', 'hot', 'recent', 'off', 'free']"
-                    @click="selectCategory(category)">{{ category }}</button>
+                    <button v-for="category in ['newAndHot', 'hot', 'recent', 'off', 'free']"
+                        @click="selectCategory(category)" :class="{ active: active.category === category }">{{ category
+                        }}</button>
                 </div>
                 <div class="shopList">
                     <div class="left">
-                        <div class="shopItem" 
-                        v-for="item in curGameList" 
-                        @mouseenter="selectCurGame(item)">
+                        <div class="shopItem" v-for="item in curGameList" @mouseenter="selectCurGame(item)" @click="gotoGamePage(item)" >
                             <img :src="getImageUrl(item.imgUrl[4])" alt="">
                             <p>{{ item.name }}</p>
                             <div class="connect"></div>
@@ -209,6 +213,12 @@ const gotoWishList = () => {
                     cursor: pointer;
                 }
 
+                &.active {
+                    color: #ffffff;
+                }
+
+
+
             }
 
             .shopList {
@@ -228,7 +238,7 @@ const gotoWishList = () => {
 
                         &:hover {
                             background-color: #A5CADF;
-
+                            cursor: pointer;
                             .connect {
                                 background-color: #A5CADF;
                             }

@@ -1,6 +1,6 @@
 function debounce(func, wait) {
   let timeout;
-  return function(...args){//使用剩余参数语法
+  return function(...args){
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => {

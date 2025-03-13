@@ -1,16 +1,17 @@
 import { defineStore } from 'pinia'
 import { loginApi } from '@/api/user'
-import { getRecommendationsApi, getSearchApi, getSearchSuggestionsApi, getGameListApi } from '@/api/app'
+import { getRecommendationsApi, getSearchSuggestionsApi, getGameListApi, getGameDetailApi } from '@/api/app'
 import { ref } from 'vue'
-
+import { Game } from '@/utils/models'
 export const useSteamStore = defineStore("steam", () => {
-  //初始就获取，不需要缓存
+  //不需要缓存
   const recommendList = ref();
-  const gameList = ref({});//用于存储游戏列表
-
+  const gameList = ref({});
+  const currentGame = ref(null);//存储当前游戏实例
   //需要缓存
   const token = ref();
   const searchSuggestionsCache = ref({});
+
   async function initState() {
 
     //加载推荐列表
@@ -39,7 +40,6 @@ export const useSteamStore = defineStore("steam", () => {
 
 
   }
-
   async function login({ username, password, rememberMe }) {
     try {
       const { data } = await loginApi({ username, password });
@@ -68,26 +68,37 @@ export const useSteamStore = defineStore("steam", () => {
       console.error('Failed to fetch search suggestions:', err)
     }
   }
-  async function searchGame(matchName) {
+  async function getGameDetail(gameName) {
     try {
-      const { data } = await getSearchApi(matchName);
-      return data;
+      const data = await getGameDetailApi(gameName);
+      currentGame.value = new Game(data)
     } catch (err) {
-      console.error('Failed to search game:', err)
+      console.error('Failed to fetch game detail:', err)
     }
   }
 
 
   function getImageUrl(url) {
+    //:src类型的都要用
     return new URL(url, import.meta.url).href
   }
-
+  function getCurrentGame() {
+    return currentGame.value;
+  }
 
 
   initState();
 
 
-
-  return { token, recommendList, gameList, login, fetchSearchSuggestions, searchGame, getImageUrl }
+  return {
+    token,
+    recommendList,
+    gameList,
+    login,
+    fetchSearchSuggestions,
+    getImageUrl,
+    getGameDetail,
+    getCurrentGame
+  }
 
 })

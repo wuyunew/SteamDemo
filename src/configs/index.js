@@ -1,4 +1,4 @@
-const env = import.meta.env.MOOE || "development";
+const env ="development";
 const EnvConfig = {
     development: {
         baseApi: "http://develpomet/api",

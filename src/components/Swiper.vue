@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useSteamStore } from '@/stores/SteamStore';
+import { CarouselControl as swiperControlClass } from '@/utils/models';
 const store = useSteamStore();
 const props = defineProps({
     recommendList: Array,
@@ -8,34 +9,6 @@ const props = defineProps({
 const { recommendList } = JSON.parse(JSON.stringify(props.recommendList))
 const num = recommendList.length;
 
-class swiperControlClass {
-    constructor(num) {
-        this.num = num;
-        this.curGame = ref(0);
-        this.timer = null;
-    }
-    getCurGame() {
-        return this.curGame.value;
-    }
-    nextGame() {
-        this.curGame.value = (this.curGame.value + 1) % this.num;
-    }
-    prevGame() {
-        this.curGame.value = (this.curGame.value - 1 + this.num) % this.num;
-    }
-    select(index) {
-        this.curGame.value = index;
-    }
-    pause() {
-        clearInterval(this.timer);
-    }
-    start() {
-        this.timer = setInterval(() => {
-            this.nextGame()
-        }, 5000);
-    }
-
-}
 const swiperControl = new swiperControlClass(num);
 
 const curGame = computed(() => recommendList[swiperControl.getCurGame()])
@@ -97,6 +70,7 @@ onUnmounted(() => {
 
     .pre:hover {
         background: linear-gradient(to right, rgba(171, 218, 244, 0) 5%, rgba(171, 218, 244, 0.3) 95%);
+        cursor: pointer;
     }
 
     .content {
@@ -160,6 +134,7 @@ onUnmounted(() => {
 
     .nxt:hover {
         background: linear-gradient(to right, rgba(171, 218, 244, 0) 5%, rgba(171, 218, 244, 0.3) 95%);
+        cursor: pointer;
     }
 
     .dots {
