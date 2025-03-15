@@ -1,39 +1,28 @@
 <script setup>
 import { useSteamStore } from '@/stores/SteamStore';
-import { ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-const store=useSteamStore()
-const route=useRoute()
-const router=useRouter()
+import {  ref } from 'vue';
+const store = useSteamStore()
 
-const username=ref('')
-const password=ref('')
-const rememberMe=ref(true)
-const errMsg=ref('')
-const loading=ref(false)
-//apifox预设的两个账号，usr:wuyu,psw:wuyu;usr:atri,psw:atri
-const login=()=>{
-    if(!username.value||!password.value)
-    return
-    loading.value=true
-    //pinia
-    const loginInformation={
-        username:username.value,
-        password:password.value,
-        rememberMe:rememberMe.value
+
+const username = ref('')
+const password = ref('')
+const rememberMe = ref(true)
+const errMsg = ref('')
+//apifox预设的两个账号，usr:user1,psw:password1;usr:user2,psw:password2
+const login = () => {
+    if (!username.value || !password.value) {
+        alert('请输入账号和密码')
+        return;
     }
-    store.login(loginInformation).then(()=>{
-        store.getUserInfo(rememberMe.value)
-    }).then(()=>{
-        //重定向到之前界面或者主页
-        router.push({path:route.query.redir||'/'})
-    }).catch((reason)=>{
-        loading.value=false
-        errMsg.value=reason.message
-    })
+    const loginInformation = {
+        username: username.value,
+        password: password.value,
+        rememberMe: rememberMe.value
+    }
+    store.login(loginInformation)
 }
-const clearErrMsg=()=>{
-    errMsg.value=''
+const clearErrMsg = () => {
+    errMsg.value = ''
 }
 
 </script>
@@ -60,7 +49,7 @@ const clearErrMsg=()=>{
                     记住我
                 </label>
                 <!--登录按钮-->
-                <div v-loading="loading" class="login-button" @click="login()">登录</div>
+                <div class="login-button" @click="login()">登录</div>
                 <!--错误提示-->
                 <div class="login-error">{{ errMsg }}</div>
                 <!--帮助-->
@@ -206,6 +195,7 @@ const clearErrMsg=()=>{
                 color: #afafaf;
                 font-size: 12px;
                 margin-bottom: 15px;
+
                 &:hover {
                     color: #c9c9c9;
                 }

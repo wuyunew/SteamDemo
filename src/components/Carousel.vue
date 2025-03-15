@@ -1,6 +1,6 @@
 <script setup>
 import { useSteamStore } from '@/stores/SteamStore';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed} from 'vue';
 import { CarouselControl } from '@/utils/models';
 
 const steamStore = useSteamStore();

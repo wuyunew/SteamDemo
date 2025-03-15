@@ -18,7 +18,7 @@ const items = [
 
 //搜索框
 const querySearch = async (queryString, cb) => {
-    const suggestions = await store.fetchSearchSuggestions(queryString)
+    const suggestions = await store.setSearchSuggestions(queryString)
     const limitnum = 5;
     const searchList = suggestions.slice(0, limitnum).map(item => ({ value: item }));
     cb(searchList)
@@ -47,7 +47,6 @@ const curGame = computed(() => curGameList.value[active.value.index])
 const selectCategory = (index_str) => { active.value.category = index_str }
 const selectCurGame = (item) => { active.value.index = curGameList.value.indexOf(item) }
 const gotoGamePage=(item)=>{
-    //先跳转到GamePage，再加载数据
     const {name}=item
     router.push({name:'gamePage',params:{gameName:name}})
     
@@ -55,10 +54,7 @@ const gotoGamePage=(item)=>{
 
 
 //愿望单
-const token = ref(store.token)
-store.$subscribe(() => {
-    token.value = store.token
-})
+const token=computed(() => store.getToken());
 const gotoWishList = () => {
     router.push('/wishlist')
 }

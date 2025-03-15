@@ -1,18 +1,19 @@
 <script setup>
 import { useSteamStore } from "@/stores/SteamStore";
-import { ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 const steamStore = useSteamStore()
-const token = ref(steamStore.token)
-const nickname = ref(steamStore.nickname)
-const headImg=ref(steamStore.headImg)
-//订阅store及时更新token
-steamStore.$subscribe(() => {
-  token.value = steamStore.token
-  nickname.value = steamStore.nickname
-  headImg.value=steamStore.headImg
+const getImageUrl=steamStore.getImageUrl
+
+const token = computed(() => {
+  return steamStore.getToken();
+});
+const userinfo=computed(()=>{
+  return steamStore.getUserInfo();
 })
+
+
 const login = () => {
   router.push("/login");
 };
@@ -23,11 +24,10 @@ const gotoWishList = () => {
   //愿望单前加路由守卫
   router.push("/wishList");
 };
-const getImageUrl = (url) => {
-    return new URL(url, import.meta.url).href
-}
+
 const logout=()=>{
   steamStore.logout()
+
 }
 </script>
 
@@ -46,7 +46,7 @@ const logout=()=>{
           <div class="userinfo">
             <el-dropdown trigger="click">
               <span class="el-dropdown-link">
-                {{ nickname }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                {{ userinfo.userName }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -57,7 +57,7 @@ const logout=()=>{
             </el-dropdown>
           </div>
           <div class="headImg">
-            <img :src="getImageUrl(headImg)" alt="">
+            <img :src="getImageUrl(userinfo.headImg)" alt="">
           </div>
         </div>
       </el-col>

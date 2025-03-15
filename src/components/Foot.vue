@@ -1,10 +1,9 @@
 <script setup>
-import router from '@/router';
 const text = "加入 Steam，探索数千款精彩游戏。"
 const goToAbout = () => {
 }
 const joinUs = () => {
-    router.push('/join')
+
 }
 </script>
 

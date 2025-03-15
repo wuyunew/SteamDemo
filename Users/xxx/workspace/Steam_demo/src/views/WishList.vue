@@ -1,80 +1,3 @@
-<script setup>
-import { useSteamStore } from '@/stores/SteamStore';
-import { onMounted, ref } from 'vue';
-import { getWishlistApi } from '@/api/wishlist';
-const steamStore = useSteamStore()
-const getImageUrl = steamStore.getImageUrl
-const userInfo = ref();
-const wishList = ref([]);
-const loading = ref(0); //0表示加载中，1表示加载完成
-onMounted(async () => {
-    //加载相关数据
-    userInfo.value = steamStore.getUserInfo();
-    try {
-        const { data } = await getWishlistApi();
-        wishList.value = data;
-        loading.value = 1;
-    } catch (err) {
-        console.error('Failed to fetch wishlist:', err)
-    }
-
-}
-
-)
-
-
-
-
-</script>
-
-<template>
-    <div class="wishList" v-if="loading">
-        <div class="userInformation">
-            <div class="header"><img :src="getImageUrl(userInfo.headImg)" alt=""></div>
-            <div class="title">{{ userInfo.userName }}的愿望单</div>
-        </div>
-        <div class="search">
-            <input type="search-input" placeholder="按名称或标签搜索">
-            <button>选项</button>
-            <el-dropdown>
-                <span class="el-dropdown-link">
-                    排序依据
-                    <el-icon class="el-icon--right">
-                        <arrow-down />
-                    </el-icon>
-                </span>
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item>Action 1</el-dropdown-item>
-                        <el-dropdown-item>Action 2</el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown>
-        </div>
-        <div class="gameslist" >
-            <div class="gameItem" v-for="(item, index) in wishList" :key="item.id">
-                <div class="left">
-
-                    <p class="index">{{ index + 1 }}</p>
-                </div>
-                <div class="right">
-                    <div class="gameImg">
-                        <img :src="getImageUrl(item.imgUrl)" alt="" class="mainImg">
-                    </div>
-                    <div class="intorduce">
-                        <h3>{{ item.name }}</h3>
-                        <p>发行日期: {{ item.releaseDate }}</p>
-                        <div class="buy">
-                            <p>HK$ {{ item.price }}</p>
-                            <button @click="addToCart(item)">添加到购物车</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 
 <style lang="less" scoped>
 .wishList {
@@ -108,7 +31,6 @@ onMounted(async () => {
     }
 
     .search {
-        margin-top: 20px;
         display: flex;
         align-items: center;
         gap: 10px; // 添加按钮和输入框之间的间距
@@ -142,50 +64,43 @@ onMounted(async () => {
     }
 
     .gameslist {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
         gap: 20px;
         padding-top: 20px;
 
         .gameItem {
-            width: 70%;
-            height: 140px;
+            width: 100%;
             background-color: #2C3E50;
             border-radius: 10px;
             overflow: hidden;
             padding: 20px;
-            display: flex;
-
 
             .left {
                 margin-right: 20px;
-                height: 100%;
+
                 .index {
-                    margin-top: auto;
                     font-size: 14px;
                     color: white;
                 }
             }
 
             .right {
-                margin:auto;
                 display: flex;
-                flex-wrap: nowrap;
+                flex-direction: column;
+                justify-content: space-between;
                 height: 100%;
-                
 
                 .gameImg {
                     .mainImg {
+                        width: 100%; /* 让图片宽度占满容器 */
+                        height: auto; /* 自动调整高度保持比例 */
                         border-radius: 10px;
-                        width: 300px;
-                        height: 150px;
-
+                        object-fit: cover; /* 确保图片覆盖整个区域 */
                     }
                 }
 
                 .intorduce {
-                    margin-left: 150px;
                     h3 {
                         color: white;
                         margin-bottom: 10px;

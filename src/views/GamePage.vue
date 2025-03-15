@@ -12,7 +12,7 @@ const supports = ref('');
 const about = ref('');
 watch(() => route.params, async () => {
     loading.value = 0;
-    await store.getGameDetail(route.params.gameName);
+    await store.setGameDetail(route.params.gameName);
     const gameInstance = store.getCurrentGame();
     //动态创建类
     if (gameInstance.price > 200)

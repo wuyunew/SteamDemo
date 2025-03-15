@@ -3,7 +3,7 @@ import request from '../utils/request'
 
 export const getWishlistApi = () => {
     return request({
-        url: '/wishlist',
+        url: '/wishlist/getWishlist',
         method: 'GET',
     });
 };

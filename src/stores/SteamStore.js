@@ -1,20 +1,25 @@
 import { defineStore } from 'pinia'
-import { loginApi } from '@/api/user'
+import { loginApi,getUserInfoApi} from '@/api/user'
 import { getRecommendationsApi, getSearchSuggestionsApi, getGameListApi, getGameDetailApi } from '@/api/app'
+import { getWishlistApi } from '@/api/wishlist'
 import { ref } from 'vue'
 import { Game } from '@/utils/models'
+import router from '@/router'
+
 export const useSteamStore = defineStore("steam", () => {
   //不需要缓存
   const recommendList = ref();
   const gameList = ref({});
-  const currentGame = ref(null);//存储当前游戏实例
+  const currentGame = ref(null);
   //需要缓存
   const token = ref();
   const searchSuggestionsCache = ref({});
+  //userInfo:{userID:string,userName:string,headImg:string}
+  const userInfo = ref({}); 
 
   async function initState() {
 
-    //加载推荐列表
+    //加载轮播推荐列表
     try {
       const data = await getRecommendationsApi();
       recommendList.value = data;
@@ -29,8 +34,12 @@ export const useSteamStore = defineStore("steam", () => {
     catch (err) {
       console.error('Failed to fetch game list:', err)
     }
-    //加载token缓存
-    token.value = JSON.parse(localStorage.getItem('steamToken')) || JSON.parse(sessionStorage.getItem('steamToken'))
+    //加载token缓存和用户信息缓存
+    token.value = JSON.parse(localStorage.getItem('token')) || null;
+    if(token.value)
+    {
+      userInfo.value = JSON.parse(localStorage.getItem('userInfo')) || null;
+    }
 
     //加载搜索提示缓存
     const catchedSearchSuggestions = localStorage.getItem('steamSearchSuggestions');
@@ -40,22 +49,35 @@ export const useSteamStore = defineStore("steam", () => {
 
 
   }
+  initState();
   async function login({ username, password, rememberMe }) {
     try {
-      const { data } = await loginApi({ username, password });
-      const { responseToken } = data;
+      const { responseToken } = await loginApi({ username, password });
       token.value = responseToken;
+      localStorage.setItem('token', JSON.stringify(token.value));
+      await setUserInfo();
       if (rememberMe) {
-        localStorage.setItem('steamToken', JSON.stringify(responseToken))
+        localStorage.setItem('rememberMe', true);
       } else {
-        sessionStorage.setItem('steamToken', JSON.stringify(responseToken))
+        localStorage.removeItem('rememberMe');
       }
-      return responseToken;
-    } catch (err) {
-      console.error('Failed to login:', err)
+      router.push({name: 'store'})
+    }
+    catch (error) {
+      console.error("登录失败");
     }
   }
-  async function fetchSearchSuggestions(query) {
+  async function setUserInfo() {
+    try {
+      const {responseUserInfo} = await getUserInfoApi();
+      userInfo.value = responseUserInfo;
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value));
+    }
+    catch (error) {
+      console.error("获取用户信息失败");
+    }
+  }
+  async function setSearchSuggestions(query) {
     if (searchSuggestionsCache.value[query]) {
       return searchSuggestionsCache.value[query];
     }
@@ -68,7 +90,7 @@ export const useSteamStore = defineStore("steam", () => {
       console.error('Failed to fetch search suggestions:', err)
     }
   }
-  async function getGameDetail(gameName) {
+  async function setGameDetail(gameName) {
     try {
       const data = await getGameDetailApi(gameName);
       currentGame.value = new Game(data)
@@ -77,28 +99,51 @@ export const useSteamStore = defineStore("steam", () => {
     }
   }
 
-
+  function logout() {
+      try {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+      } catch (error) {
+          console.error("Error occurred while clearing localStorage:", error);
+      }
+  
+      if (typeof token !== 'undefined' && token !== null) {
+          token.value = null;
+      }
+      if (typeof userInfo !== 'undefined' && userInfo !== null) {
+          userInfo.value = null;
+      }
+      router.push({name: 'store'})
+  }
   function getImageUrl(url) {
-    //:src类型的都要用
+    //其实是将相对路由转为绝对路由，项目前期只有图片用到所以用这个名字
     return new URL(url, import.meta.url).href
   }
   function getCurrentGame() {
     return currentGame.value;
   }
+  function getToken(){
+    return token.value;
+  }
+  function getUserInfo(){
+    return userInfo.value;
+  }
 
 
-  initState();
 
 
   return {
-    token,
     recommendList,
     gameList,
+
     login,
-    fetchSearchSuggestions,
+    logout,
+    setSearchSuggestions,
     getImageUrl,
-    getGameDetail,
-    getCurrentGame
+    setGameDetail,
+    getCurrentGame,
+    getToken,
+    getUserInfo,
   }
 
 })
