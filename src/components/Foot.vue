@@ -9,7 +9,7 @@ const joinUs = () => {
 
 <template>
     <div class="button">
-        <el-row>f
+        <el-row>
             <el-col :span="3" :offset="8">
                 <div class="left">
                     <span>{{ text }}</span><br>
