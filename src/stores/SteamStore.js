@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { loginApi,getUserInfoApi} from '@/api/user'
 import { getRecommendationsApi, getSearchSuggestionsApi, getGameListApi, getGameDetailApi } from '@/api/app'
-import { getWishlistApi } from '@/api/wishlist'
 import { ref } from 'vue'
 import { Game } from '@/utils/models'
 import router from '@/router'
@@ -64,7 +63,8 @@ export const useSteamStore = defineStore("steam", () => {
       router.push({name: 'store'})
     }
     catch (error) {
-      console.error("登录失败");
+      console.error("登录失败:", error);
+      alert("登录失败");
     }
   }
   async function setUserInfo() {

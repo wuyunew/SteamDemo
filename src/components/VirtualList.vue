@@ -45,14 +45,14 @@ const visibleItems = computed(() => {
 
 
 
-// 组件挂载时计算可见项目数
+
 onMounted(() => {
   calculateVisibleCount();
   window.addEventListener('resize', calculateVisibleCount);
   window.addEventListener('scroll', throttledCalculateVisibleCount);
 });
 
-// 清理资源
+
 onUnmounted(() => {
   window.removeEventListener('resize', calculateVisibleCount);
   window.removeEventListener('scroll', throttledCalculateVisibleCount);

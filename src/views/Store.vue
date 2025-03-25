@@ -26,7 +26,6 @@ const querySearch = async (queryString, cb) => {
 const debounceQuerySearch = debounce(querySearch, 300);
 const matchName = ref('');
 const getSearch = async () => {
-    //matchName为待搜索的游戏，搜索功能待写
 }
 const throttleGetSearch = throttle(getSearch, 1000);
 

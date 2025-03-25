@@ -9,7 +9,6 @@ const service = axios.create({
     //baseURL在config中查看
     timeout: 5000
 });
-// 添加请求拦截器
 service.interceptors.request.use(
     function (config) {
         // 在发送请求之前做将token添加到请求头

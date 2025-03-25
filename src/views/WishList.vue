@@ -1,6 +1,6 @@
 <script setup>
 import { useSteamStore } from '@/stores/SteamStore';
-import { onMounted, ref } from 'vue';
+import {  ref,onBeforeMount } from 'vue';
 import { getWishlistApi } from '@/api/wishlist';
 import VirtualList from '@/components/VirtualList.vue';
 const steamStore = useSteamStore();
@@ -9,7 +9,7 @@ const userInfo = ref();
 const wishList = ref([]);
 const loading = ref(0); // 0表示加载中，1表示加载完成
 
-onMounted(async () => {
+onBeforeMount(async () => {
   // 加载相关数据
   userInfo.value = steamStore.getUserInfo();
   try {
@@ -21,10 +21,9 @@ onMounted(async () => {
   }
 });
 
-// 添加点击事件处理函数
+
 const addToCart = (item) => {
   console.log('Adding to cart:', item);
-  // 在这里添加添加到购物车的逻辑
 };
 const isDrag = ref("false");
 const allowDrag = () => {
@@ -162,20 +161,20 @@ const dragEnd = (event) => {
       font-size: 14px; // 字体大小
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.6); // 占位符颜色
+        color: rgba(255, 255, 255, 0.6); 
       }
     }
 
     button {
-      background-color: #2C3E50; // 按钮背景颜色
-      color: white; // 按钮文字颜色
-      border: none; // 移除默认边框
-      padding: 8px 12px; // 内边距
-      border-radius: 4px; // 圆角
-      cursor: pointer; // 鼠标悬停时显示指针
+      background-color: #2C3E50; 
+      color: white; 
+      border: none; 
+      padding: 8px 12px; 
+      border-radius: 4px; 
+      cursor: pointer;
 
       &:hover {
-        background-color: #34495e; // 鼠标悬停时的背景颜色
+        background-color: #34495e; 
       }
     }
   }
@@ -196,7 +195,7 @@ const dragEnd = (event) => {
       padding: 20px;
       display: flex;
       margin-bottom: 20px;
-      transition: transform 0.1s ease, opacity 0.1s ease; // 添加过渡效果
+      transition: transform 0.1s ease, opacity 0.1s ease; 
 
       .left {
         margin-right: 20px;
